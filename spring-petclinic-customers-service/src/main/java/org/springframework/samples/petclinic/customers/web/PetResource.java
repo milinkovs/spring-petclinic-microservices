@@ -17,9 +17,8 @@ package org.springframework.samples.petclinic.customers.web;
 
 import io.micrometer.core.annotation.Timed;
 import jakarta.validation.constraints.Min;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.samples.petclinic.customers.application.PetService;
 import org.springframework.samples.petclinic.customers.model.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,14 +35,14 @@ import java.util.List;
 @Timed("petclinic.pet")
 class PetResource {
 
-    private static final Logger log = LoggerFactory.getLogger(PetResource.class);
-
     private final PetRepository petRepository;
     private final OwnerRepository ownerRepository;
+    private final PetService petService;
 
-    PetResource(PetRepository petRepository, OwnerRepository ownerRepository) {
+    PetResource(PetRepository petRepository, OwnerRepository ownerRepository, PetService petService) {
         this.petRepository = petRepository;
         this.ownerRepository = ownerRepository;
+        this.petService = petService;
     }
 
     @GetMapping("/petTypes")
@@ -62,7 +61,7 @@ class PetResource {
 
         final Pet pet = new Pet();
         owner.addPet(pet);
-        return save(pet, petRequest);
+        return petService.savePet(pet, petRequest.name(), petRequest.birthDate(), petRequest.typeId());
     }
 
     @PutMapping("/owners/*/pets/{petId}")
@@ -70,19 +69,7 @@ class PetResource {
     public void processUpdateForm(@RequestBody PetRequest petRequest) {
         int petId = petRequest.id();
         Pet pet = findPetById(petId);
-        save(pet, petRequest);
-    }
-
-    private Pet save(final Pet pet, final PetRequest petRequest) {
-
-        pet.setName(petRequest.name());
-        pet.setBirthDate(petRequest.birthDate());
-
-        petRepository.findPetTypeById(petRequest.typeId())
-            .ifPresent(pet::setType);
-
-        log.info("Saving pet {}", pet);
-        return petRepository.save(pet);
+        petService.savePet(pet, petRequest.name(), petRequest.birthDate(), petRequest.typeId());
     }
 
     @GetMapping("owners/*/pets/{petId}")

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('petForm')
-    .controller('PetFormController', ['$http', '$state', '$stateParams', function ($http, $state, $stateParams) {
+    .controller('PetFormController', ['$http', '$state', '$stateParams', '$filter', function ($http, $state, $stateParams, $filter) {
         var self = this;
         var ownerId = $stateParams.ownerId || 0;
 
@@ -34,7 +34,7 @@ angular.module('petForm')
             var data = {
                 id: id,
                 name: self.pet.name,
-                birthDate: self.pet.birthDate,
+                birthDate: $filter('date')(self.pet.birthDate, 'yyyy-MM-dd'),
                 typeId: self.petTypeId
             };
 
